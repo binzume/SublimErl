@@ -1,5 +1,9 @@
 # SublimErl (Erlang Tests & Code Completion)
 
+- Fork of [glymehrvrd/SublimErl](https://github.com/glymehrvrd/SublimErl).
+- Fix for Windows.
+- Fix for latest Sublime Text 3 (26 March 2015, Build 3083).
+
 Overview
 --------
 

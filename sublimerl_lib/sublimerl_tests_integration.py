@@ -45,7 +45,7 @@ last_test_type = None
 
 class SublimErlTestRunner(SublimErlProjectLoader):
 
-    def __init__(self, view):
+    def __init__(self, view, edit):
         # init super
         SublimErlProjectLoader.__init__(self, view)
 
@@ -53,6 +53,7 @@ class SublimErlTestRunner(SublimErlProjectLoader):
         self.initialized = False
         self.panel_name = 'sublimerl_tests'
         self.panel_buffer = ''
+        self.edit = edit
 
         global test_in_progress
         # don't proceed if a test is already running
@@ -71,15 +72,13 @@ class SublimErlTestRunner(SublimErlProjectLoader):
     def setup_panel(self):
         self.panel = self.window.get_output_panel(self.panel_name)
         self.panel.settings().set("syntax", os.path.join(
-            get_plugin_path(), "theme", "SublimErlTests.hidden-tmLanguage"))
+            get_theme_path(), "SublimErlTests.hidden-tmLanguage"))
         self.panel.settings().set("color_scheme", os.path.join(
-            get_plugin_path(), "theme", "SublimErlTests.hidden-tmTheme"))
+            get_theme_path(), "SublimErlTests.hidden-tmTheme"))
 
     def update_panel(self):
         if len(self.panel_buffer):
-            panel_edit = self.panel.begin_edit()
-            self.panel.insert(panel_edit, self.panel.size(), self.panel_buffer)
-            self.panel.end_edit(panel_edit)
+            self.panel.run_command("sublim_erl_update", {"buffer": self.panel_buffer})
             self.panel.show(self.panel.size())
             self.panel_buffer = ''
             self.window.run_command(
@@ -385,20 +384,20 @@ class SublimErlCtTestRunner(SublimErlTestRunner):
 # test runners
 class SublimErlTestRunners():
 
-    def dialyzer_test(self, view):
-        test_runner = SublimErlDialyzerTestRunner(view)
+    def dialyzer_test(self, view, new=True, edit = None):
+        test_runner = SublimErlDialyzerTestRunner(view, edit)
         if test_runner.initialized == False:
             return
-        test_runner.start_test()
+        test_runner.start_test(new=new)
 
-    def ct_or_eunit_test(self, view, new=True):
+    def ct_or_eunit_test(self, view, new=True, edit = None):
         global last_test_type
         if last_test_type == 'ct' or get_erlang_module_name(view).find("_SUITE") != -1:
             # ct
-            test_runner = SublimErlCtTestRunner(view)
+            test_runner = SublimErlCtTestRunner(view, edit)
         else:
             # eunit
-            test_runner = SublimErlEunitTestRunner(view)
+            test_runner = SublimErlEunitTestRunner(view, edit)
 
         if test_runner.initialized == False:
             return
@@ -409,14 +408,14 @@ class SublimErlTestRunners():
 class SublimErlDialyzerCommand(SublimErlTextCommand):
 
     def run_command(self, edit):
-        SublimErlTestRunners().dialyzer_test(self.view)
+        SublimErlTestRunners().dialyzer_test(self.view, edit)
 
 
 # start new test
 class SublimErlTestCommand(SublimErlTextCommand):
 
     def run_command(self, edit):
-        SublimErlTestRunners().ct_or_eunit_test(self.view)
+        SublimErlTestRunners().ct_or_eunit_test(self.view, edit = edit)
 
 
 # repeat last test
@@ -426,9 +425,9 @@ class SublimErlRedoCommand(SublimErlTextCommand):
         # init
         global last_test_type
         if last_test_type == 'dialyzer':
-            SublimErlTestRunners().dialyzer_test(self.view, new=False)
+            SublimErlTestRunners().dialyzer_test(self.view, new=False, edit = edit)
         elif last_test_type == 'eunit' or last_test_type == 'ct':
-            SublimErlTestRunners().ct_or_eunit_test(self.view, new=False)
+            SublimErlTestRunners().ct_or_eunit_test(self.view, new=False, edit = edit)
 
     def show_contextual_menu(self):
         global last_test
@@ -451,3 +450,14 @@ class SublimErlCtResultsCommand(SublimErlTextCommand):
         index_path = os.path.abspath(
             os.path.join(loader.project_root, 'logs', 'index.html'))
         return os.path.exists(index_path)
+
+# update output panel
+class SublimErlUpdateCommand(sublime_plugin.TextCommand):
+    def run(self, edit, buffer=None):
+        self.view.insert(edit, self.view.size(), buffer)
+
+    def is_enabled(self):
+        return True
+
+    def show_contextual_menu(self):
+        return False

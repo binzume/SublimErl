@@ -111,7 +111,10 @@ def execute_os_command(os_cmd):
 
 
 def shellquote(s):
-    return "'" + s.replace("'", "'\\''") + "'"
+    if  sublime.platform() != 'windows':
+        return "'" + s.replace("'", "'\\''") + "'"
+    else:
+        return '"' + s.replace('"', '\\"') + '"'
 
 
 def check_env():
@@ -143,9 +146,12 @@ def check_env():
 
 
 def get_plugin_path():
-    plugin_path = os.path.join(sublime.packages_path(), 'SublimErl')
+    plugin_path = os.path.join(sublime.packages_path(), 'SublimErl') # FIXME: theme failed on ST3 + Win.
     return plugin_path
 
+def get_theme_path():
+    # os.path.join(get_plugin_path(), "theme") # FIXME: theme failed on ST3 + Win.
+    return "Packages/SublimErl/theme"
 
 def get_completions_path():
     completions_path = os.path.join(get_plugin_path(), "completion")
@@ -189,7 +195,7 @@ def get_erlang_libs_path():
     os.chdir(get_support_path())
     escript_command = "sublimerl_utility.erl lib_dir"
     retcode, data = execute_os_command(
-        '%s %s' % (get_escript_path(), escript_command))
+        '"%s" %s' % (get_escript_path(), escript_command))
     return data
 
 
@@ -288,7 +294,7 @@ class SublimErlProjectLoader():
         app_desc = f.read()
         f.close()
         m = re.search(
-            r"{\s*application\s*,\s*('?[A-Za-z0-9_]+'?)\s*,\s*\[", app_desc)
+            r"{\s*application\s*,\s*('?[A-Za-z0-9_]+'?)\s*,\s*\[", app_desc.decode())
         if m:
             return m.group(1)
 
@@ -353,10 +359,9 @@ class SublimErlTextCommand(sublime_plugin.TextCommand):
             return self.run_command(edit)
 
     def _context_match(self):
-        # context matches if lang is source.erlang and if platform is not
-        # windows
+        # context matches if lang is source.erlang
         caret = self.view.sel()[0].a
-        if 'source.erlang' in self.view.scope_name(caret) and sublime.platform() != 'windows':
+        if 'source.erlang' in self.view.scope_name(caret):
             return True
         else:
             return False

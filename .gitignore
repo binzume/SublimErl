@@ -1,8 +1,5 @@
 *.pyc
 *.cache
-Current-Project.disasm
-Current-Project.searches
-Current-Project.sublime-completions
 
 # OSX
 .DS_Store
@@ -12,5 +9,3 @@ Current-Project.sublime-completions
 *.swp
 
 *.bak
-
-completion/

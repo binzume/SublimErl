@@ -199,8 +199,9 @@ class SublimErlCompletions(SublimErlProjectLoader):
                 this.execute_os_command("python sublimerl_libparser.py %s %s" % (
                     this.shellquote(get_erlang_libs_path()), this.shellquote(dest_file_base)))
                 # rename file to .full
-                os.rename("%s.sublime-completions" % dest_file_base,
-                          "%s.sublime-completions.full" % dest_file_base)
+                dst = "%s.sublime-completions.full" % dest_file_base
+                if os.path.exists(dst): os.remove(dst) # for windows.
+                os.rename("%s.sublime-completions" % dest_file_base, dst)
                 # save dir information
                 f = open(dirinfo_path, 'wb')
                 pickle.dump(current_erlang_libs, f)

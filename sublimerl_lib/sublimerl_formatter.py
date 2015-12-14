@@ -51,7 +51,7 @@ class SublimErlAutoFormat():
         # call erlang formatter
         os.chdir(get_support_path())
         escript_command = "sublimerl_formatter.erl %s" % shellquote(temp.name)
-        retcode, data = execute_os_command('%s %s' % (get_escript_path(), escript_command))
+        retcode, data = execute_os_command('"%s" %s' % (get_escript_path(), escript_command))
         # delete temp file
         os.remove(temp.name)
         if retcode == 0:

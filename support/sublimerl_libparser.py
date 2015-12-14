@@ -85,14 +85,14 @@ class SublimErlLibParser():
                     if not (True in [filepath.find(rel_dir) != -1 for rel_dir in rel_dirs]):
                         # not in a release directory, get module name
                         module_name, module_ext = os.path.splitext(filename)
-                        print 'reading:' + filepath
+                        print('reading:' + filepath)
                         # get module content
-                        f = open(filepath, 'r')
+                        f = open(filepath, 'r', encoding='utf-8')
                         module = self.strip_comments(f.read())
                         f.close()
                         # get completions
                         module_completions, line_numbers = self.get_completions(module)
-                        print module_completions
+                        print(module_completions)
                         if len(module_completions) > 0:
                             # set disasm
                             disasms[module_name] = sorted(module_completions, key=lambda k: k[0])
@@ -104,7 +104,7 @@ class SublimErlLibParser():
                             completions.append("{ \"trigger\": \"%s\", \"contents\": \"%s\" }" % (module_name, module_name))
 
         # add BIF completions?
-        if disasms.has_key('erlang'):
+        if disasms.get('erlang', None):
             # we are generating erlang disasm
             bif_completions = self.bif_completions()
             for k in bif_completions.keys():
@@ -127,9 +127,9 @@ class SublimErlLibParser():
         # write to files: completions
         f_completions = open("%s.sublime-completions" % dest_file_base, 'wb')
         if len(completions) > 0:
-            f_completions.write("{ \"scope\": \"source.erlang\", \"completions\": [\n" + ',\n'.join(completions) + "\n]}")
+            f_completions.write(("{ \"scope\": \"source.erlang\", \"completions\": [\n" + ',\n'.join(completions) + "\n]}").encode('utf-8'))
         else:
-            f_completions.write("{}")
+            f_completions.write("{}".encode('utf-8'))
         f_completions.close()
 
     def get_completions(self, module):

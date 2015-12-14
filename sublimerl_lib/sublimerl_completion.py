@@ -196,8 +196,10 @@ class SublimErlCompletions(SublimErlProjectLoader):
                 # set cwd
                 os.chdir(get_support_path())
                 # start gen
-                this.execute_os_command("python sublimerl_libparser.py %s %s" % (
-                    this.shellquote(get_erlang_libs_path()), this.shellquote(dest_file_base)))
+                exec(open("sublimerl_libparser.py").read().replace("sys.argv", "ARGV"),
+                    {'ARGV':['dummy', get_erlang_libs_path(), dest_file_base], '__name__': '__main__'})
+                #this.execute_os_command("python sublimerl_libparser.py %s %s" % (
+                #    this.shellquote(get_erlang_libs_path()), this.shellquote(dest_file_base)))
                 # rename file to .full
                 dst = "%s.sublime-completions.full" % dest_file_base
                 if os.path.exists(dst): os.remove(dst) # for windows.
